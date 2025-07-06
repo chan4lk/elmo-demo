@@ -1,0 +1,34 @@
+name: Build and Publish NodeJS Docker Image
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest # Use a fresh Ubuntu runner
+
+    permissions:
+      contents: read # Allow reading repository contents
+      packages: write # Allow writing to GitHub Packages (for GHCR)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Get the code from the repository
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }} # Use the GitHub actor as username
+          password: ${{ secrets.GITHUB_TOKEN }} # Use the GITHUB_TOKEN for authentication
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6 # Action to build and push Docker images
+        with:
+          context: . # Build from the current directory
+          push: true # Push the image to the registry
+          tags: ghcr.io/${{ github.repository }}:latest # Define the image tag
+          # You can add more tags, e.g., ghcr.io/${{ github.repository }}:${{ github.sha }}
